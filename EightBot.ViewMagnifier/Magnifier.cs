@@ -1,9 +1,23 @@
 ﻿using System;
 using UIKit;
 using CoreGraphics;
+using EightBot.ViewMagnifier.Extensions;
 
 namespace EightBot.ViewMagnifier
 {
+
+	public enum MagnifierPosition {
+		FollowTouch,
+		Static,
+		Docked
+	}
+
+	public enum DockPosition {
+		TopLeft,
+		TopRight,
+	}
+
+
 	/// <summary>
 	/// Magnifier.
 	/// </summary>
@@ -17,9 +31,29 @@ namespace EightBot.ViewMagnifier
 		const float DefaultOffset = -40f;
 		const float DefaultScale = 1.5f;
 
+		public MagnifierPosition MagnifierPosition {
+			get;
+			set;
+		}
+
+		public DockPosition DockPosition {
+			get;
+			set;
+		}
+
 		public CGPoint TouchPointOffset {
 			get;
 			set;
+		}
+
+		float _dockPadding = 20f;
+		public float DockPadding {
+			get {
+				return _dockPadding;
+			}
+			set {
+				_dockPadding = value;
+			}
 		}
 
 		public nfloat Scale {
@@ -56,20 +90,12 @@ namespace EightBot.ViewMagnifier
 			set {
 				base.Frame = value;
 
+				_radius = (float)Frame.Width / 2f;
+
 				this.Layer.CornerRadius = value.Size.Width / 2f;
 			}
 		}
 			
-		bool _followTouch = true;
-		public bool FollowTouch {
-			get {
-				return _followTouch;
-			}
-			set {
-				_followTouch = value;
-			}
-		}
-
 		CGPoint _touchPoint;
 		public CGPoint TouchPoint {
 			get {
@@ -78,8 +104,38 @@ namespace EightBot.ViewMagnifier
 			set {
 				_touchPoint = value;
 
-				if(FollowTouch)
-					Center = new CGPoint(value.X + TouchPointOffset.X, value.Y + TouchPointOffset.Y);
+				if (MagnifierPosition == MagnifierPosition.FollowTouch)
+					Center = new CGPoint (value.X + TouchPointOffset.X, value.Y + TouchPointOffset.Y);
+				else if (MagnifierPosition == MagnifierPosition.Docked) {
+					if (this.ViewToMagnify != null) {
+						if (this.Frame.Contains (_touchPoint)) {
+							this.DockPosition = (DockPosition)this.DockPosition.Previous ();
+							System.Diagnostics.Debug.WriteLine ("Magnifier Contains Point - View To Magnify: {0} TouchPoint: {1}", this.ViewToMagnify.Frame, _touchPoint);
+						}
+
+						CGPoint newCenter = CGPoint.Empty;
+
+						switch (DockPosition) {
+						case DockPosition.TopLeft:
+							newCenter = new CGPoint (Radius + DockPadding, Radius + DockPadding);
+							break;
+						case DockPosition.TopRight:
+							newCenter = new CGPoint (this.ViewToMagnify.Frame.Width - Radius - DockPadding, Radius + DockPadding);
+							break;
+//						case DockPosition.BottomRight:
+//							newCenter = new CGPoint (
+//								this.ViewToMagnify.Frame.Width - Radius - DockPadding, 
+//								this.ViewToMagnify.Frame.Height - Radius - DockPadding);
+//							break;
+//						case DockPosition.BottomLeft:
+//							newCenter = new CGPoint (Radius + DockPadding, this.ViewToMagnify.Frame.Height - Radius - DockPadding);
+//							break;
+						}
+
+						if(newCenter != Center)
+							UIView.Animate (.2d, () => this.Center = newCenter);
+					}
+				}
 			}
 		}
 
@@ -90,6 +146,8 @@ namespace EightBot.ViewMagnifier
 
 		public Magnifier (CGRect frame) : base(frame){
 
+			this.ExclusiveTouch = false;
+
 			this.Layer.BorderColor = UIColor.LightGray.CGColor;
 			this.Layer.BorderWidth = 3f;
 			this.Layer.MasksToBounds = true;
@@ -98,6 +156,8 @@ namespace EightBot.ViewMagnifier
 			this.Scale = DefaultScale;
 			this.ViewToMagnify = null;
 			this.ScaleAtTouchPoint = true;
+
+			this._radius = (float)frame.Width / 2f;
 		}
 
 		public override void Draw (CGRect rect)
@@ -105,8 +165,10 @@ namespace EightBot.ViewMagnifier
 			base.Draw (rect);
 
 			using (var context = UIGraphics.GetCurrentContext()){
+				
 				context.TranslateCTM (this.Frame.Size.Width / 2f, this.Frame.Size.Height / 2f);
 				context.ScaleCTM (Scale, Scale);
+
 				context.TranslateCTM (-TouchPoint.X, -TouchPoint.Y + (ScaleAtTouchPoint ? 0 : this.Bounds.Size.Height / 2f));
 
 				if(ViewToMagnify != null)
