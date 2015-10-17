@@ -28,7 +28,7 @@ namespace EightBot.ViewMagnifier
 			this.ExclusiveTouch = false;
 		}
 
-		public override async void TouchesBegan (Foundation.NSSet touches, UIEvent evt)
+		public override void TouchesBegan (Foundation.NSSet touches, UIEvent evt)
 		{
 			var touch = touches.AnyObject as UITouch;
 
@@ -47,22 +47,24 @@ namespace EightBot.ViewMagnifier
 			Magnifier.Alpha = 0f;
 			var touchPoint = touch.LocationInView (this);
 
-			if (touchPoint.X - Magnifier.Radius < 0)
-				touchPoint.X = Magnifier.Radius;
-			else if (touchPoint.X + Magnifier.Radius > this.Frame.Width)
-				touchPoint.X = this.Frame.Width - Magnifier.Radius;
+			var halfRadius = Magnifier.Radius * .65f;
 
-			if (touchPoint.Y - Magnifier.Radius < 0)
-				touchPoint.Y = Magnifier.Radius;
-			else if (touchPoint.Y + Magnifier.Radius > this.Frame.Height)
-				touchPoint.Y = this.Frame.Height - Magnifier.Radius;
+			if (touchPoint.X - halfRadius < 0)
+				touchPoint.X = halfRadius;
+			else if (touchPoint.X + halfRadius > this.Frame.Width)
+				touchPoint.X = this.Frame.Width - halfRadius;
+
+			if (touchPoint.Y - halfRadius < 0)
+				touchPoint.Y = halfRadius;
+			else if (touchPoint.Y + halfRadius > this.Frame.Height)
+				touchPoint.Y = this.Frame.Height - halfRadius;
 			
 
 			Magnifier.TouchPoint = touchPoint;
 			this.Superview.AddSubview (Magnifier);
 			Magnifier.SetNeedsDisplay ();
 
-			UIView.AnimateAsync (MagnifyingGlassShowDelay, () => Magnifier.Alpha = 1f);
+			UIView.Animate (MagnifyingGlassShowDelay, () => Magnifier.Alpha = 1f);
 
 			if (Magnifier.Frame.Contains (touch.LocationInView (this)))
 				System.Diagnostics.Debug.WriteLine ("touching");
@@ -82,15 +84,17 @@ namespace EightBot.ViewMagnifier
 
 			var touchPoint = touch.LocationInView (this);
 
-			if (touchPoint.X - Magnifier.Radius < 0)
-				touchPoint.X = Magnifier.Radius;
-			else if (touchPoint.X + Magnifier.Radius > this.Frame.Width)
-				touchPoint.X = this.Frame.Width - Magnifier.Radius;
+			var halfRadius = Magnifier.Radius * .65f;
 
-			if (touchPoint.Y - Magnifier.Radius < 0)
-				touchPoint.Y = Magnifier.Radius;
-			else if (touchPoint.Y + Magnifier.Radius > this.Frame.Height)
-				touchPoint.Y = this.Frame.Height - Magnifier.Radius;
+			if (touchPoint.X - halfRadius < 0)
+				touchPoint.X = halfRadius;
+			else if (touchPoint.X + halfRadius > this.Frame.Width)
+				touchPoint.X = this.Frame.Width - halfRadius;
+
+			if (touchPoint.Y - halfRadius < 0)
+				touchPoint.Y = halfRadius;
+			else if (touchPoint.Y + halfRadius > this.Frame.Height)
+				touchPoint.Y = this.Frame.Height - halfRadius;
 
 
 			Magnifier.TouchPoint = touchPoint;
