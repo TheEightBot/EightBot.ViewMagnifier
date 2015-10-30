@@ -9,7 +9,8 @@ namespace EightBot.ViewMagnifier
 	public enum MagnifierPosition {
 		FollowTouch,
 		Static,
-		Docked
+		Docked,
+		TowardsCenter
 	}
 
 	public enum DockPosition {
@@ -104,9 +105,50 @@ namespace EightBot.ViewMagnifier
 			set {
 				_touchPoint = value;
 
-				if (MagnifierPosition == MagnifierPosition.FollowTouch)
+				switch (MagnifierPosition) {
+				case MagnifierPosition.FollowTouch:
 					Center = new CGPoint (value.X + TouchPointOffset.X, value.Y + TouchPointOffset.Y);
-				else if (MagnifierPosition == MagnifierPosition.Docked) {
+					break;
+				case MagnifierPosition.TowardsCenter:
+					var centerX = this.ViewToMagnify.Frame.Width / 2f;
+					var centerY = this.ViewToMagnify.Frame.Height / 2f;
+
+					var lessThanCenterY = TouchPoint.Y < centerY;
+					var lessThanCenterX = TouchPoint.X < centerX;
+
+					if (lessThanCenterX && lessThanCenterY) {
+						UIView.Animate (.2d, () => {
+							UIView.SetAnimationBeginsFromCurrentState(true);
+							Center = new CGPoint (
+							value.X + Radius + TouchPointOffset.X,
+							value.Y);
+						});
+					} else if (!lessThanCenterX && lessThanCenterY) {
+						UIView.Animate (.2d, () => {
+							UIView.SetAnimationBeginsFromCurrentState(true);
+							Center = new CGPoint (
+								value.X - Radius - TouchPointOffset.X,
+								value.Y);
+						});
+					} else if (!lessThanCenterX && !lessThanCenterY) {
+						UIView.Animate (.2d, () => {
+							UIView.SetAnimationBeginsFromCurrentState(true);
+							Center = new CGPoint (
+								value.X - Radius - TouchPointOffset.X,
+								value.Y - Radius - TouchPointOffset.Y);
+						});
+					} else if (lessThanCenterX && !lessThanCenterY) {
+						UIView.Animate (.2d, () => {
+							UIView.SetAnimationBeginsFromCurrentState(true);
+							Center = new CGPoint (
+								value.X + Radius + TouchPointOffset.X,
+								value.Y - Radius - TouchPointOffset.Y);
+						});
+					}
+
+
+					break;
+				case MagnifierPosition.Docked:
 					if (this.ViewToMagnify != null) {
 						if (this.Frame.Contains (_touchPoint)) {
 							this.DockPosition = (DockPosition)this.DockPosition.Previous ();
@@ -116,25 +158,21 @@ namespace EightBot.ViewMagnifier
 						CGPoint newCenter = CGPoint.Empty;
 
 						switch (DockPosition) {
-						case DockPosition.TopLeft:
-							newCenter = new CGPoint (Radius + DockPadding, Radius + DockPadding);
-							break;
-						case DockPosition.TopRight:
-							newCenter = new CGPoint (this.ViewToMagnify.Frame.Width - Radius - DockPadding, Radius + DockPadding);
-							break;
-//						case DockPosition.BottomRight:
-//							newCenter = new CGPoint (
-//								this.ViewToMagnify.Frame.Width - Radius - DockPadding, 
-//								this.ViewToMagnify.Frame.Height - Radius - DockPadding);
-//							break;
-//						case DockPosition.BottomLeft:
-//							newCenter = new CGPoint (Radius + DockPadding, this.ViewToMagnify.Frame.Height - Radius - DockPadding);
-//							break;
+							case DockPosition.TopLeft:
+								newCenter = new CGPoint (Radius + DockPadding, Radius + DockPadding);
+								break;
+							case DockPosition.TopRight:
+								newCenter = new CGPoint (this.ViewToMagnify.Frame.Width - Radius - DockPadding, Radius + DockPadding);
+								break;
 						}
 
-						if(newCenter != Center)
-							UIView.Animate (.2d, () => this.Center = newCenter);
+						if (newCenter != Center)
+							UIView.Animate (.2d, () => {
+								UIView.SetAnimationBeginsFromCurrentState(true);
+								this.Center = newCenter;
+							});
 					}
+					break;
 				}
 			}
 		}
