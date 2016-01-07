@@ -2,12 +2,34 @@
 using UIKit;
 using Foundation;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace EightBot.ViewMagnifier
 {
 	public class MagnifierView : UIView
 	{
 		const double DefaultShowDelay = .2d;
+
+		bool _shouldDisplay;
+		public bool ShouldDisplay {
+			get {
+				return _shouldDisplay;
+			}
+			set {
+				_shouldDisplay = value;
+
+				if (_shouldDisplay)
+					UIView.Animate(MagnifyingGlassShowDelay, 0d, 
+						UIViewAnimationOptions.BeginFromCurrentState | UIViewAnimationOptions.CurveEaseIn,
+						() => Magnifier.Alpha = 1f,
+						null);
+				else
+					UIView.Animate (MagnifyingGlassShowDelay, 0d, 
+						UIViewAnimationOptions.BeginFromCurrentState | UIViewAnimationOptions.CurveEaseOut,
+						() => Magnifier.Alpha = 0f,
+						null);
+			}
+		}
 
 		public double MagnifyingGlassShowDelay {
 			get;
@@ -32,41 +54,19 @@ namespace EightBot.ViewMagnifier
 		{
 			var touch = touches.AnyObject as UITouch;
 
-//			if (this.Subviews != null) {
-//				foreach (var child in this.Subviews) {
-//					child.TouchesBegan (touches, evt);
-//				}
-//			}
-
 			if (Magnifier == null)
 				Magnifier = new Magnifier ();
 
 			if (Magnifier.ViewToMagnify == null)
 				Magnifier.ViewToMagnify = this;
 
-			Magnifier.Alpha = 0f;
 			var touchPoint = touch.LocationInView (this);
-
-			var halfRadius = Magnifier.Radius * .65f;
-
-			if (touchPoint.X - halfRadius < 0)
-				touchPoint.X = halfRadius;
-			else if (touchPoint.X + halfRadius > this.Frame.Width)
-				touchPoint.X = this.Frame.Width - halfRadius;
-
-			if (touchPoint.Y - halfRadius < 0)
-				touchPoint.Y = halfRadius;
-			else if (touchPoint.Y + halfRadius > this.Frame.Height)
-				touchPoint.Y = this.Frame.Height - halfRadius;
-			
 
 			Magnifier.TouchPoint = touchPoint;
 			this.Superview.AddSubview (Magnifier);
 			Magnifier.SetNeedsDisplay ();
 
-			UIView.Animate (MagnifyingGlassShowDelay, () => Magnifier.Alpha = 1f);
-
-			if (Magnifier.Frame.Contains (touch.LocationInView (this)))
+			//if (Magnifier.Frame.Contains (touch.LocationInView (this)))
 				System.Diagnostics.Debug.WriteLine ("touching");
 		}
 
@@ -74,70 +74,23 @@ namespace EightBot.ViewMagnifier
 		{
 			base.TouchesMoved (touches, evt);
 
-//			if (this.Subviews != null) {
-//				foreach (var child in this.Subviews) {
-//					child.TouchesMoved (touches, evt);
-//				}
-//			}
-
 			var touch = touches.AnyObject as UITouch;
 
 			var touchPoint = touch.LocationInView (this);
-
-			var halfRadius = Magnifier.Radius * .65f;
-
-			if (touchPoint.X - halfRadius < 0)
-				touchPoint.X = halfRadius;
-			else if (touchPoint.X + halfRadius > this.Frame.Width)
-				touchPoint.X = this.Frame.Width - halfRadius;
-
-			if (touchPoint.Y - halfRadius < 0)
-				touchPoint.Y = halfRadius;
-			else if (touchPoint.Y + halfRadius > this.Frame.Height)
-				touchPoint.Y = this.Frame.Height - halfRadius;
-
 
 			Magnifier.TouchPoint = touchPoint;
 			Magnifier.SetNeedsDisplay ();
 		}
 
-		public override async void TouchesCancelled (NSSet touches, UIEvent evt)
-		{
-			base.TouchesCancelled (touches, evt);
-
-//			if (this.Subviews != null) {
-//				foreach (var child in this.Subviews) {
-//					child.TouchesCancelled (touches, evt);
-//				}
-//			}
-
-			await UIView.AnimateAsync (MagnifyingGlassShowDelay, () => {
-				Magnifier.Alpha = 0f;
-			});
-
-			Magnifier.RemoveFromSuperview ();
-		}
-
-		public override async void TouchesEnded (NSSet touches, UIEvent evt)
-		{
-			base.TouchesEnded (touches, evt);
-
-//			if (this.Subviews != null) {
-//				foreach (var child in this.Subviews) {
-//					child.TouchesEnded (touches, evt);
-//				}
-//			}
-
-			await UIView.AnimateAsync (MagnifyingGlassShowDelay, () => {
-				Magnifier.Alpha = 0f;
-			});
-
-			Magnifier.RemoveFromSuperview ();
-		}
-
 		protected override void Dispose (bool disposing)
 		{
 			if (disposing) {
+				if (this.Subviews.Any ()) {
+					for (int i = this.Subviews.Count() - 1; i >= 0; i--) {
+						this.Subviews [i].RemoveFromSuperview ();
+					}
+				}
+
 				if (Magnifier != null) {
 					Magnifier.RemoveFromSuperview ();
 					Magnifier.Dispose ();

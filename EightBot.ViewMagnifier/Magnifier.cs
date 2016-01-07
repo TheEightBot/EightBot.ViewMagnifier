@@ -120,15 +120,15 @@ namespace EightBot.ViewMagnifier
 						UIView.Animate (.2d, () => {
 							UIView.SetAnimationBeginsFromCurrentState(true);
 							Center = new CGPoint (
-							value.X + Radius + TouchPointOffset.X,
-							value.Y);
+								value.X + Radius + TouchPointOffset.X,
+								value.Y + Radius + TouchPointOffset.Y);
 						});
 					} else if (!lessThanCenterX && lessThanCenterY) {
 						UIView.Animate (.2d, () => {
 							UIView.SetAnimationBeginsFromCurrentState(true);
 							Center = new CGPoint (
 								value.X - Radius - TouchPointOffset.X,
-								value.Y);
+								value.Y + Radius + TouchPointOffset.Y);
 						});
 					} else if (!lessThanCenterX && !lessThanCenterY) {
 						UIView.Animate (.2d, () => {
@@ -186,6 +186,7 @@ namespace EightBot.ViewMagnifier
 
 			this.ExclusiveTouch = false;
 
+			this.Layer.BackgroundColor = UIColor.White.CGColor;
 			this.Layer.BorderColor = UIColor.LightGray.CGColor;
 			this.Layer.BorderWidth = 3f;
 			this.Layer.MasksToBounds = true;
@@ -196,21 +197,29 @@ namespace EightBot.ViewMagnifier
 			this.ScaleAtTouchPoint = true;
 
 			this._radius = (float)frame.Width / 2f;
+
+			this.ContentMode = UIViewContentMode.Redraw;
 		}
 
 		public override void Draw (CGRect rect)
 		{
 			base.Draw (rect);
 
-			using (var context = UIGraphics.GetCurrentContext()){
-				
+			using (var context = UIGraphics.GetCurrentContext ()){
+				context.SetFillColor (UIColor.White.CGColor);
+				context.FillRect (rect);
+
+				context.InterpolationQuality = CGInterpolationQuality.Low;
+
 				context.TranslateCTM (this.Frame.Size.Width / 2f, this.Frame.Size.Height / 2f);
+
 				context.ScaleCTM (Scale, Scale);
 
 				context.TranslateCTM (-TouchPoint.X, -TouchPoint.Y + (ScaleAtTouchPoint ? 0 : this.Bounds.Size.Height / 2f));
 
-				if(ViewToMagnify != null)
+				if (ViewToMagnify != null) {
 					this.ViewToMagnify.Layer.RenderInContext (context);
+				}
 			}
 		}
 
