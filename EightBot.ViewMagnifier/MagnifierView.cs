@@ -47,6 +47,7 @@ namespace EightBot.ViewMagnifier
 		{
 			MagnifyingGlassShowDelay = DefaultShowDelay;
 			Magnifier = new Magnifier ();
+			Magnifier.Alpha = 0.0f;
 			this.ExclusiveTouch = false;
 		}
 
@@ -99,6 +100,15 @@ namespace EightBot.ViewMagnifier
 			}
 
 			base.Dispose (disposing);
+		}
+
+		public override bool PointInside (CoreGraphics.CGPoint point, UIEvent uievent)
+		{
+			var pointInsideValue = base.PointInside (point, uievent);
+
+			System.Diagnostics.Debug.WriteLine ("MagnifierTouched {0}", pointInsideValue);
+
+			return true;
 		}
 	}
 }
