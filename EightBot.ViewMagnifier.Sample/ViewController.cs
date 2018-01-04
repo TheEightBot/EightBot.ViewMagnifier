@@ -21,9 +21,9 @@ namespace EightBot.ViewMagnifier.Sample
 			_magnifierView = new MagnifierView ();
 			_magnifierView.Frame = View.Frame;
 			_magnifierView.Magnifier.ScaleAtTouchPoint = true;
-			_magnifierView.Magnifier.FollowTouch = false;
 			_magnifierView.Magnifier.Radius = 80;
 			_magnifierView.Magnifier.Scale = 2.5f;
+            _magnifierView.ShowOnTouch = true;
 
 			_magnifierView.Magnifier.Center = new CoreGraphics.CGPoint (100, 100);
 
