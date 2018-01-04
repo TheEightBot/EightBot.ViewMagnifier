@@ -140,8 +140,7 @@ namespace EightBot.ViewMagnifier
 					if (this.ViewToMagnify != null) {
 						if (this.Frame.Contains (_touchPoint)) {
 							this.DockPosition = (DockPosition)this.DockPosition.Previous ();
-							System.Diagnostics.Debug.WriteLine ("Magnifier Contains Point - View To Magnify: {0} TouchPoint: {1}", this.ViewToMagnify.Frame, _touchPoint);
-						}
+					    }
 
 						CGPoint newCenter = CGPoint.Empty;
 
@@ -182,30 +181,52 @@ namespace EightBot.ViewMagnifier
 			this.ScaleAtTouchPoint = true;
 
 			this._radius = (float)frame.Width / 2f;
-
-			this.ContentMode = UIViewContentMode.Redraw;
 		}
+
+        bool _drawing;
+        bool _needsDraw;
 
 		public override void Draw (CGRect rect)
 		{
 			base.Draw (rect);
 
-			using (var context = UIGraphics.GetCurrentContext ()){
-				context.SetFillColor (UIColor.White.CGColor);
-				context.FillRect (rect);
+            if(_drawing){
+                _needsDraw = true;
+                return;
+            }
 
-				context.InterpolationQuality = CGInterpolationQuality.Low;
+            try
+            {
+                _drawing = true;
 
-				context.TranslateCTM (this.Frame.Size.Width / 2f, this.Frame.Size.Height / 2f);
+                using (var context = UIGraphics.GetCurrentContext())
+                {
+                    context.InterpolationQuality = CGInterpolationQuality.Medium;
 
-				context.ScaleCTM (Scale, Scale);
+                    context.TranslateCTM(this.Frame.Size.Width / 2f, this.Frame.Size.Height / 2f);
 
-				context.TranslateCTM (-TouchPoint.X, -TouchPoint.Y + (ScaleAtTouchPoint ? 0 : this.Bounds.Size.Height / 2f));
+                    context.ScaleCTM(Scale, Scale);
 
-				if (ViewToMagnify != null) {
-					this.ViewToMagnify.Layer.RenderInContext (context);
-				}
-			}
+                    context.TranslateCTM(-TouchPoint.X, -TouchPoint.Y + (ScaleAtTouchPoint ? 0 : this.Bounds.Size.Height / 2f));
+
+                    if (ViewToMagnify != null)
+                    {
+                        UIGraphics.PushContext(context);
+                        ViewToMagnify.DrawViewHierarchy(ViewToMagnify.Bounds, false);
+                        UIGraphics.PopContext();
+                    }
+                }
+            }
+            finally
+            {
+                _drawing = false;
+
+                if(_needsDraw){
+                    _needsDraw = false;
+                    SetNeedsDisplay();
+                }
+            }
+
 		}
 
 		protected override void Dispose (bool disposing)
