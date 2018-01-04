@@ -41,8 +41,6 @@ namespace EightBot.ViewMagnifier
 			set;
 		}
 
-		NSTimer _touchTimer;
-
 		public MagnifierView ()
 		{
 			MagnifyingGlassShowDelay = DefaultShowDelay;
@@ -66,9 +64,6 @@ namespace EightBot.ViewMagnifier
 			Magnifier.TouchPoint = touchPoint;
 			this.Superview.AddSubview (Magnifier);
 			Magnifier.SetNeedsDisplay ();
-
-			//if (Magnifier.Frame.Contains (touch.LocationInView (this)))
-				System.Diagnostics.Debug.WriteLine ("touching");
 		}
 
 		public override void TouchesMoved (NSSet touches, UIEvent evt)
