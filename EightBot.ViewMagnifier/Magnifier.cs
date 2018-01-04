@@ -117,33 +117,21 @@ namespace EightBot.ViewMagnifier
 					var lessThanCenterX = TouchPoint.X < centerX;
 
 					if (lessThanCenterX && lessThanCenterY) {
-						UIView.Animate (.2d, () => {
-							UIView.SetAnimationBeginsFromCurrentState(true);
-							Center = new CGPoint (
-								value.X + Radius + TouchPointOffset.X,
-								value.Y + Radius + TouchPointOffset.Y);
-						});
+						Center = new CGPoint (
+							value.X + Radius + TouchPointOffset.X,
+							value.Y + Radius + TouchPointOffset.Y);
 					} else if (!lessThanCenterX && lessThanCenterY) {
-						UIView.Animate (.2d, () => {
-							UIView.SetAnimationBeginsFromCurrentState(true);
-							Center = new CGPoint (
-								value.X - Radius - TouchPointOffset.X,
-								value.Y + Radius + TouchPointOffset.Y);
-						});
+						Center = new CGPoint (
+							value.X - Radius - TouchPointOffset.X,
+							value.Y + Radius + TouchPointOffset.Y);
 					} else if (!lessThanCenterX && !lessThanCenterY) {
-						UIView.Animate (.2d, () => {
-							UIView.SetAnimationBeginsFromCurrentState(true);
-							Center = new CGPoint (
-								value.X - Radius - TouchPointOffset.X,
-								value.Y - Radius - TouchPointOffset.Y);
-						});
+						Center = new CGPoint (
+							value.X - Radius - TouchPointOffset.X,
+							value.Y - Radius - TouchPointOffset.Y);
 					} else if (lessThanCenterX && !lessThanCenterY) {
-						UIView.Animate (.2d, () => {
-							UIView.SetAnimationBeginsFromCurrentState(true);
-							Center = new CGPoint (
-								value.X + Radius + TouchPointOffset.X,
-								value.Y - Radius - TouchPointOffset.Y);
-						});
+						Center = new CGPoint (
+							value.X + Radius + TouchPointOffset.X,
+							value.Y - Radius - TouchPointOffset.Y);
 					}
 
 
@@ -167,10 +155,7 @@ namespace EightBot.ViewMagnifier
 						}
 
 						if (newCenter != Center)
-							UIView.Animate (.2d, () => {
-								UIView.SetAnimationBeginsFromCurrentState(true);
-								this.Center = newCenter;
-							});
+							this.Center = newCenter;
 					}
 					break;
 				}
