@@ -36,6 +36,8 @@ namespace EightBot.ViewMagnifier
 			set;
 		}
 
+        public bool ShowOnTouch { get; set; }
+
 		public Magnifier Magnifier {
 			get;
 			set;
@@ -63,6 +65,10 @@ namespace EightBot.ViewMagnifier
 
 			Magnifier.TouchPoint = touchPoint;
 			this.Superview.AddSubview (Magnifier);
+
+            if (ShowOnTouch)
+                ShouldDisplay = true;
+            
 			Magnifier.SetNeedsDisplay ();
 		}
 
@@ -77,6 +83,22 @@ namespace EightBot.ViewMagnifier
 			Magnifier.TouchPoint = touchPoint;
 			Magnifier.SetNeedsDisplay ();
 		}
+
+        public override void TouchesEnded(NSSet touches, UIEvent evt)
+        {
+            base.TouchesEnded(touches, evt);
+
+            if (ShowOnTouch)
+                ShouldDisplay = false;
+        }
+
+        public override void TouchesCancelled(NSSet touches, UIEvent evt)
+        {
+            base.TouchesCancelled(touches, evt);
+
+            if (ShowOnTouch)
+                ShouldDisplay = false;
+        }
 
 		protected override void Dispose (bool disposing)
 		{
@@ -100,8 +122,6 @@ namespace EightBot.ViewMagnifier
 		public override bool PointInside (CoreGraphics.CGPoint point, UIEvent uievent)
 		{
 			var pointInsideValue = base.PointInside (point, uievent);
-
-			System.Diagnostics.Debug.WriteLine ("MagnifierTouched {0}", pointInsideValue);
 
 			return true;
 		}
